@@ -231,27 +231,77 @@ Faites preuve de pédagogie et soyez clair dans vos explications et procedures d
 **Exercice 1 :**  
 Quels sont les composants dont la perte entraîne une perte de données ?  
   
-*..Répondez à cet exercice ici..*
+*Les composants dont la perte entraîne une perte de données sont :
+
+- Le PVC `pra-data` : il contient la base de données SQLite de production
+- Le PVC `pra-backup` : il contient les sauvegardes de la base de données
+
+Si `pra-data` est perdu sans sauvegarde, les données sont définitivement perdues.  
+Si `pra-backup` est perdu, il devient impossible de restaurer les données en cas de sinistre.
+
+Les autres composants (pods, containers, deployment) ne stockent pas de données persistantes.
+
+---*
 
 **Exercice 2 :**  
 Expliquez nous pourquoi nous n'avons pas perdu les données lors de la supression du PVC pra-data  
   
-*..Répondez à cet exercice ici..*
+*Nous n'avons pas perdu définitivement les données car un système de sauvegarde est en place.
+
+En effet, un CronJob Kubernetes effectue une sauvegarde de la base de données toutes les minutes depuis le PVC `pra-data` vers le PVC `pra-backup`.
+
+Lors de la suppression du PVC `pra-data`, les données de production sont perdues, mais elles peuvent être restaurées grâce aux sauvegardes présentes dans `pra-backup`.
+
+Donc, les données ne sont pas protégées par Kubernetes lui-même, mais par la stratégie de sauvegarde mise en place.
+*
 
 **Exercice 3 :**  
 Quels sont les RTO et RPO de cette solution ?  
   
-*..Répondez à cet exercice ici..*
+*
+- RPO (Recovery Point Objective) : environ 1 minute  
+  → car une sauvegarde est effectuée toutes les minutes, donc on peut perdre au maximum 1 minute de données
+
+- RTO (Recovery Time Objective) : quelques minutes  
+  → temps nécessaire pour recréer l’infrastructure, restaurer la base de données et redémarrer l’application
+*
 
 **Exercice 4 :**  
 Pourquoi cette solution (cet atelier) ne peux pas être utilisé dans un vrai environnement de production ? Que manque-t-il ?   
   
-*..Répondez à cet exercice ici..*
+*Cette solution n’est pas adaptée à un environnement de production pour plusieurs raisons :
+
+- Le stockage n’est pas répliqué
+- Les sauvegardes sont stockées sur le même cluster (risque de perte totale)
+- Il n’y a pas de sauvegarde externe (type cloud ou hors site)
+- La restauration est manuelle
+- Il n’y a pas de supervision ni d’alertes
+- La sécurité n’est pas assurée (pas de chiffrement, pas de gestion des accès)
+- Le cluster Kubernetes est local (k3d)
+- La base SQLite n’est pas adaptée à la production (pas de gestion multi-utilisateurs)
+
+Il manque donc de la haute disponibilité, de la résilience et de la sécurité.
+*
   
 **Exercice 5 :**  
 Proposez une archtecture plus robuste.   
   
-*..Répondez à cet exercice ici..*
+*Une architecture plus robuste pourrait inclure :
+
+- Une base de données plus adaptée comme PostgreSQL ou MySQL avec réplication
+- Un stockage distribué (Ceph, Longhorn, ou stockage cloud)
+- Des sauvegardes externalisées (S3, Azure Blob, Google Cloud Storage)
+- Un cluster Kubernetes multi-nodes et multi-zones
+- Des pods répliqués pour assurer la haute disponibilité
+- Une restauration automatisée
+- Une supervision avec Prometheus et Grafana
+- Un système d’alertes
+- La sécurisation des données (chiffrement, gestion des accès)
+
+Cette architecture permettrait d’avoir :
+- un RPO proche de 0
+- un RTO très faible
+- une meilleure tolérance aux pannes.*
 
 ---------------------------------------------------
 Séquence 6 : Ateliers  

@@ -313,7 +313,9 @@ Difficulté : Moyenne (~2 heures)
 * last_backup_file : nom du dernier backup présent dans /backup
 * backup_age_seconds : âge du dernier backup
 
-*..**Déposez ici une copie d'écran** de votre réussite..*
+**<img width="376" height="239" alt="Mon appli abel joel" src="https://github.com/user-attachments/assets/7e2b92f0-7a90-406b-95ee-2883395ff974" />
+
+*
 
 ---------------------------------------------------
 ### **Atelier 2 : Choisir notre point de restauration**  

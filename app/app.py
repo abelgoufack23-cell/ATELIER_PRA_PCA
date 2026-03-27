@@ -87,7 +87,46 @@ def count():
     conn.close()
 
     return jsonify(count=n)
+@app.get("/status")
+def status():
+    init_db()
 
+    conn = get_conn()
+    cur = conn.execute("SELECT COUNT(*) FROM events")
+    count = cur.fetchone()[0]
+    conn.close()
+
+    backup_dir = "/backup"
+
+    try:
+        files = os.listdir(backup_dir)
+        files = [f for f in files if f.endswith(".db")]
+
+        if not files:
+            return jsonify(
+                count=count,
+                last_backup_file=None,
+                backup_age_seconds=None
+            )
+
+        latest_file = max(
+            files,
+            key=lambda f: os.path.getmtime(os.path.join(backup_dir, f))
+        )
+
+        latest_path = os.path.join(backup_dir, latest_file)
+        last_modified = os.path.getmtime(latest_path)
+
+        backup_age = int(datetime.now().timestamp() - last_modified)
+
+        return jsonify(
+            count=count,
+            last_backup_file=latest_file,
+            backup_age_seconds=backup_age
+        )
+
+    except Exception as e:
+        return jsonify(error=str(e))
 # ---------- Main ----------
 if __name__ == "__main__":
     init_db()
